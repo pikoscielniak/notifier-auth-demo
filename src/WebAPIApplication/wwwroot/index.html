@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title></title>
+</head>
+
+<body>
+    <div id="message"></div>
+    <button id="token">Get Token</button>
+    <button id="dialog">Get Token (via dialog)</button>
+    <button id="forget">Forget Token</button>
+    <button id="signout">Logout of IdentityServer</button>
+    <button id="protected">Protected</button>
+    <button id="unprotected">Unprotected</button>
+    <pre id="result"></pre>
+    <script src="jquery-2.1.0.min.js"></script>
+    <script src="oidc-token-manager.js"></script>
+    <script>
+        $(function () {
+            var config = {
+                authority: "https://accounts.google.com",
+                client_id: "342665198077-1fdticgpjke40gddj3r8vghltpgcvb5m.apps.googleusercontent.com",
+                redirect_uri: window.location.protocol + "//" + window.location.host + "/callback.html",
+                post_logout_redirect_uri: window.location.protocol + "//" + window.location.host + "/index.html",
+                response_type: "id_token token",
+                scope: "email",
+                silent_redirect_uri: window.location.protocol + "//" + window.location.host + "/frame.html",
+                popup_redirect_uri: window.location.protocol + "//" + window.location.host + "/popup.html",
+                jwks: {
+                    keys: [{
+                        kty: "RSA",
+                        x5c: ["-----BEGIN CERTIFICATE-----\nMIIDJjCCAg6gAwIBAgIIWjJvp163wuMwDQYJKoZIhvcNAQEFBQAwNjE0MDIGA1UE\nAxMrZmVkZXJhdGVkLXNpZ25vbi5zeXN0ZW0uZ3NlcnZpY2VhY2NvdW50LmNvbTAe\nFw0xNjA0MDYwNjQzMzRaFw0xNjA0MDcxOTQzMzRaMDYxNDAyBgNVBAMTK2ZlZGVy\nYXRlZC1zaWdub24uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20wggEiMA0GCSqG\nSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDLSEVY3NIiUdhozuANUmkdIJyVt2DtOs4v\nWMRnl6nslofl8vZLPa4QeW6N1EqXIykjs9kGT3JMJwc2KqCcC/Hj7J20JykNwrRR\nB4t/zSvEEOD6SiE6K7rpS/xO9uG1PYk6rG250H29fNvobhVr65vpcU6jkMHlQ24V\nEFdUXCI3463e2BbnzhOKCyd7BkQTes3MXmBfta2p11SH1qelcMZuubC8mfz3rXq9\nAVEP/yvcaUXY+EFheVgMqlNzmmSdMPxzfIS145niSF0nWrLTDZglGeRqFpK2Zx+s\n0VoJ6o0wpswLW1+TzIBRByYWj3cFz+tmRkLTg+L2mz0rMz3LapY/AgMBAAGjODA2\nMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgeAMBYGA1UdJQEB/wQMMAoGCCsG\nAQUFBwMCMA0GCSqGSIb3DQEBBQUAA4IBAQC6xrvz7aGZ4qNlLr+euCcyDomaxAji\nSCZ/gIF5qNxZE1jgtstaKP5+mll4Xw5UvjF73s154ij8iZxQJVxz8C0Bpn14FtIm\nCsyAeFUZaURUmdcr5M2xshX7iXYP4jdhYggXJ7aQqOUcjj1OA9B/HJE1VgljbMhf\nN0EPiKR7u4eUB8IEFplJdeFDE7+ojJLnRNMdCiZIKi5euy7XrzwlihaPzpXfBjH4\nhPveKdLOey6to7GW3MW7DvSfnxCoWM/bLh/3ve2dS/1/0U5kc7NwGVf3RA76lYI/\n7t2J478cxqNsJ48RugBkjTCIXtcAbGfMGgN4TpbxRBZ7BN2DnHuDpIAR\n-----END CERTIFICATE-----\n"]
+                    }]
+                },
+                load_user_profile : false,
+                silent_renew: true
+            };
+            var mgr = new OidcTokenManager(config);
+            window.mgr = mgr;
+
+            if (!mgr.expired) {
+                console.log("Token loaded, expires in: ", mgr.expires_in);
+                console.log("profile", mgr.profile);
+                console.log("access_token", !!mgr.access_token);
+            }
+            else {
+                console.log("No token loaded");
+            }
+
+            mgr.addOnTokenObtained(function () {
+                console.log("token obtained, scopes: ", mgr.scopes);
+            });
+            mgr.addOnTokenRemoved(function () {
+                console.log("token removed");
+            });
+            mgr.addOnTokenExpiring(function () {
+                console.log("token is about to expire");
+                //mgr.renewTokenSilent();
+            });
+            mgr.addOnTokenExpired(function () {
+                $("#message").text("your session is expired");
+                console.log("token expired");
+            });
+
+            $("#token").click(function () {
+                mgr.redirectForToken();
+            });
+
+            $("#dialog").click(function () {
+                mgr.openPopupForTokenAsync().then(function () {
+                    console.log('popup success');
+                }, function (err) {
+                    console.log('popup error: ', err);
+                });
+            });
+
+            $("#forget").click(function () {
+                mgr.removeToken();
+            });
+
+            $("#signout").click(function () {
+                mgr.redirectForLogout();
+            });
+
+            function toggleForget() {
+                $("#forget").prop("disabled", mgr.expired);
+            }
+            $("#protected").click(function () {
+                $.ajax({
+                    url: 'api/values',
+                    type: 'GET',
+                    dataType: "json",
+                    beforeSend: function (xhr) {
+                        console.log(mgr.access_token);
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + mgr.id_token);
+                    },
+                    data: {},
+                    success:  function( data ) {
+                        $( "#result" ).html( data );
+                    },
+                    error: function (err) {console.log(err.responseText); }
+                });
+             });
+
+            $("#unprotected").click(function () {
+                $.ajax({
+                    url: 'api/publicvalues',
+                    type: 'GET',
+                    dataType: "json",
+                    data: {},
+                    success: function (data) {
+                        $("#result").html(data);
+                    },
+                    error: function (err) { console.log(err.responseText); }
+                });
+            });
+            mgr.addOnTokenObtained(toggleForget);
+            mgr.addOnTokenRemoved(toggleForget);
+            toggleForget();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title></title>
+</head>
+
+<body>
+    <div id="message"></div>
+    <div><a href="index.html">Go Back To Home Page</a></div>
+    <script src="jquery-2.1.0.min.js"></script>
+    <script src="oidc-token-manager.js"></script>
+    <script>
+        var config = {
+            authority: "https://accounts.google.com",
+            client_id: "342665198077-1fdticgpjke40gddj3r8vghltpgcvb5m.apps.googleusercontent.com",
+            jwks: {
+                keys: [{
+                    kty: "RSA",
+                    x5c: ["-----BEGIN CERTIFICATE-----\nMIIDJjCCAg6gAwIBAgIIWjJvp163wuMwDQYJKoZIhvcNAQEFBQAwNjE0MDIGA1UE\nAxMrZmVkZXJhdGVkLXNpZ25vbi5zeXN0ZW0uZ3NlcnZpY2VhY2NvdW50LmNvbTAe\nFw0xNjA0MDYwNjQzMzRaFw0xNjA0MDcxOTQzMzRaMDYxNDAyBgNVBAMTK2ZlZGVy\nYXRlZC1zaWdub24uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20wggEiMA0GCSqG\nSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDLSEVY3NIiUdhozuANUmkdIJyVt2DtOs4v\nWMRnl6nslofl8vZLPa4QeW6N1EqXIykjs9kGT3JMJwc2KqCcC/Hj7J20JykNwrRR\nB4t/zSvEEOD6SiE6K7rpS/xO9uG1PYk6rG250H29fNvobhVr65vpcU6jkMHlQ24V\nEFdUXCI3463e2BbnzhOKCyd7BkQTes3MXmBfta2p11SH1qelcMZuubC8mfz3rXq9\nAVEP/yvcaUXY+EFheVgMqlNzmmSdMPxzfIS145niSF0nWrLTDZglGeRqFpK2Zx+s\n0VoJ6o0wpswLW1+TzIBRByYWj3cFz+tmRkLTg+L2mz0rMz3LapY/AgMBAAGjODA2\nMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgeAMBYGA1UdJQEB/wQMMAoGCCsG\nAQUFBwMCMA0GCSqGSIb3DQEBBQUAA4IBAQC6xrvz7aGZ4qNlLr+euCcyDomaxAji\nSCZ/gIF5qNxZE1jgtstaKP5+mll4Xw5UvjF73s154ij8iZxQJVxz8C0Bpn14FtIm\nCsyAeFUZaURUmdcr5M2xshX7iXYP4jdhYggXJ7aQqOUcjj1OA9B/HJE1VgljbMhf\nN0EPiKR7u4eUB8IEFplJdeFDE7+ojJLnRNMdCiZIKi5euy7XrzwlihaPzpXfBjH4\nhPveKdLOey6to7GW3MW7DvSfnxCoWM/bLh/3ve2dS/1/0U5kc7NwGVf3RA76lYI/\n7t2J478cxqNsJ48RugBkjTCIXtcAbGfMGgN4TpbxRBZ7BN2DnHuDpIAR\n-----END CERTIFICATE-----\n"]
+                }]
+            }
+            load_user_profile : false
+        };
+        var mgr = new OidcTokenManager(config);
+
+        mgr.processTokenCallbackAsync().then(function () {
+            console.log("Successfully Obtained Token", mgr.access_token);
+            $("#message").text("Successfully Obtained Token", mgr.access_token);
+            window.location.replace("/index.html");
+        }, function (error) {
+            $("#message").text("Problem Getting Token : " + (error.message || error));
+        });
+    </script>
+</body>
+
+</html>
