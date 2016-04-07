@@ -27,20 +27,19 @@ namespace WebAPIApplication
         {
             // Add framework services.
             services.AddAuthentication();
-            services.AddMvc(config =>
-            {
+            services.AddMvc();
+            // services.AddMvc(config =>
+            // {
 //                var policy = new AuthorizationPolicyBuilder()
 //                    .RequireAuthenticatedUser()
 //                    .Build();
 //                config.Filters.Add(new AuthorizeFilter(policy));
-            });
+            // });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
-        {
-            
-            RSACryptoServiceProvider.UseMachineKeyStore = false;
+        {                        
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
